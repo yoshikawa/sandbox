@@ -52,6 +52,16 @@ rules:
   verbs:
   - get
 - apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
   - jobset.x-k8s.io
   resources:
   - jobsets
@@ -195,6 +205,22 @@ rules:
   - ray.io
   resources:
   - rayclusters/status
+  verbs:
+  - get
+- apiGroups:
+  - workload.codeflare.dev
+  resources:
+  - appwrappers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - workload.codeflare.dev
+  resources:
+  - appwrappers/status
   verbs:
   - get
 ---

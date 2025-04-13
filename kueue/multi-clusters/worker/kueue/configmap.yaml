@@ -14,7 +14,7 @@ data:
     health:
       healthProbeBindAddress: :8081
     metrics:
-      bindAddress: :8080
+      bindAddress: :8443
     # enableClusterQueueResources: true
     webhook:
       port: 9443
@@ -37,6 +37,7 @@ data:
     #waitForPodsReady:
     #  enable: false
     #  timeout: 5m
+    #  recoveryTimeout: 3m
     #  blockAdmission: false
     #  requeuingStrategy:
     #    timestamp: Eviction
@@ -60,22 +61,17 @@ data:
       - "ray.io/rayjob"
       - "ray.io/raycluster"
       - "jobset.x-k8s.io/jobset"
-      - "kubeflow.org/mxjob"
       - "kubeflow.org/paddlejob"
       - "kubeflow.org/pytorchjob"
       - "kubeflow.org/tfjob"
       - "kubeflow.org/xgboostjob"
+      - "workload.codeflare.dev/appwrapper"
     #  - "pod"
     #  - "deployment" # requires enabling pod integration
     #  - "statefulset" # requires enabling pod integration
+    #  - "leaderworkerset.x-k8s.io/leaderworkerset" # requires enabling pod integration
     #  externalFrameworks:
     #  - "Foo.v1.example.com"
-    #  podOptions:
-    #    namespaceSelector:
-    #      matchExpressions:
-    #        - key: kubernetes.io/metadata.name
-    #          operator: NotIn
-    #          values: [ kube-system, kueue-system ]
     #fairSharing:
     #  enable: true
     #  preemptionStrategies: [LessThanOrEqualToFinalShare, LessThanInitialShare]

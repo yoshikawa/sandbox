@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/component: controller
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: kueue
     control-plane: controller-manager
   name: kueue-controller-manager-metrics-service
@@ -12,7 +13,7 @@ spec:
   - name: https
     port: 8443
     protocol: TCP
-    targetPort: https
+    targetPort: 8443
   selector:
     control-plane: controller-manager
 ---

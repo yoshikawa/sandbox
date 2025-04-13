@@ -40,6 +40,10 @@ rules:
   - create
   - patch
 ---
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.kueue.x-k8s.io/batch-admin: "true"
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -48,11 +52,11 @@ metadata:
     app.kubernetes.io/name: kueue
     control-plane: controller-manager
   name: kueue-batch-admin-role
+---
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      rbac.kueue.x-k8s.io/batch-admin: "true"
----
+      rbac.kueue.x-k8s.io/batch-user: "true"
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -61,10 +65,6 @@ metadata:
     app.kubernetes.io/name: kueue
     control-plane: controller-manager
   name: kueue-batch-user-role
-aggregationRule:
-  clusterRoleSelectors:
-  - matchLabels:
-      rbac.kueue.x-k8s.io/batch-user: "true"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -459,7 +459,6 @@ rules:
   - kubeflow.org
   resources:
   - mpijobs
-  - mxjobs
   - paddlejobs
   - pytorchjobs
   - tfjobs
@@ -474,8 +473,6 @@ rules:
   - kubeflow.org
   resources:
   - mpijobs/finalizers
-  - mxjobs/finalizers
-  - mxjobs/status
   - paddlejobs/finalizers
   - pytorchjobs/finalizers
   - tfjobs/finalizers
@@ -527,6 +524,7 @@ rules:
   resources:
   - admissionchecks/status
   - clusterqueues/status
+  - cohorts/status
   - localqueues/status
   - multikueueclusters/status
   - workloads/status
@@ -565,6 +563,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - leaderworkerset.x-k8s.io
+  resources:
+  - leaderworkersets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - node.k8s.io
   resources:
   - runtimeclasses
@@ -587,11 +593,18 @@ rules:
   - ray.io
   resources:
   - rayclusters/finalizers
-  - rayclusters/status
   - rayjobs/finalizers
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ray.io
+  resources:
+  - rayclusters/status
   - rayjobs/status
   verbs:
   - get
+  - patch
   - update
 - apiGroups:
   - scheduling.k8s.io
@@ -601,6 +614,53 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - workload.codeflare.dev
+  resources:
+  - appwrappers
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - workload.codeflare.dev
+  resources:
+  - appwrappers/finalizers
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - workload.codeflare.dev
+  resources:
+  - appwrappers/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: kueue
+    control-plane: controller-manager
+  name: kueue-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -669,62 +729,6 @@ rules:
   - kubeflow.org
   resources:
   - mpijobs/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: kueue
-    control-plane: controller-manager
-    rbac.kueue.x-k8s.io/batch-admin: "true"
-    rbac.kueue.x-k8s.io/batch-user: "true"
-  name: kueue-mxjob-editor-role
-rules:
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - mxjobs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - mxjobs/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: kueue
-    control-plane: controller-manager
-    rbac.kueue.x-k8s.io/batch-admin: "true"
-    rbac.kueue.x-k8s.io/batch-user: "true"
-  name: kueue-mxjob-viewer-role
-rules:
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - mxjobs
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - mxjobs/status
   verbs:
   - get
 ---
@@ -822,28 +826,6 @@ rules:
   - get
   - list
   - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: kueue
-    control-plane: controller-manager
-  name: kueue-proxy-role
-rules:
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1118,6 +1100,48 @@ metadata:
     app.kubernetes.io/name: kueue
     control-plane: controller-manager
     rbac.kueue.x-k8s.io/batch-admin: "true"
+  name: kueue-topology-editor-role
+rules:
+- apiGroups:
+  - kueue.x-k8s.io
+  resources:
+  - topology
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: kueue
+    control-plane: controller-manager
+    rbac.kueue.x-k8s.io/batch-admin: "true"
+  name: kueue-topology-viewer-role
+rules:
+- apiGroups:
+  - kueue.x-k8s.io
+  resources:
+  - topology
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: kueue
+    control-plane: controller-manager
+    rbac.kueue.x-k8s.io/batch-admin: "true"
   name: kueue-workload-editor-role
 rules:
 - apiGroups:
@@ -1281,11 +1305,11 @@ metadata:
     app.kubernetes.io/component: controller
     app.kubernetes.io/name: kueue
     control-plane: controller-manager
-  name: kueue-proxy-rolebinding
+  name: kueue-metrics-auth-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kueue-proxy-role
+  name: kueue-metrics-auth-role
 subjects:
 - kind: ServiceAccount
   name: kueue-controller-manager

@@ -5,3 +5,5 @@ resources:
   - kueue
   - jobset
   - trainer/crds
+  - kube-ray/default
+  - appwrapper/config/default

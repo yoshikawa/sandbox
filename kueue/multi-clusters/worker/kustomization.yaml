@@ -6,3 +6,5 @@ resources:
   - jobset
   - trainer/manifests/overlays/kubeflow
   - mpi-operator/manifests/overlays/kubeflow
+  - kube-ray/default
+  - appwrapper/config/default
