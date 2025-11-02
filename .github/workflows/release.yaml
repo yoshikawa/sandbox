@@ -31,6 +31,10 @@ jobs:
       run: (cd /tmp/artifact; sha256sum *) | tee /tmp/SHA256SUMS
     - name: "The sha256sum of the SHA256SUMS file"
       run: sha256sum /tmp/SHA256SUMS
+    - name: "Check artifact contents"
+      run: |
+        echo ">>> /tmp/artifact content:"
+        ls -l /tmp/artifact || echo "artifact dir missing"
     - name: "Prepare the release note"
       run: |
         tag="${GITHUB_REF##*/}"
