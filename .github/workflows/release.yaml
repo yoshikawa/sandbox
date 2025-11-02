@@ -27,10 +27,6 @@ jobs:
     - uses: actions/checkout@v5
     - name: "Build binaries"
       run: DOCKER_BUILDKIT=1 docker build -o /tmp/artifact --target cross-artifact .
-    - name: "SHA256SUMS"
-      run: (cd /tmp/artifact; sha256sum *) | tee /tmp/SHA256SUMS
-    - name: "The sha256sum of the SHA256SUMS file"
-      run: sha256sum /tmp/SHA256SUMS
     - name: "Ensure artifact directory exists (dummy fallback)"
       run: |
         mkdir -p /tmp/artifact
@@ -38,6 +34,10 @@ jobs:
           echo "⚠️ No artifacts found. Creating dummy artifact."
           echo "This is a dummy artifact for testing release workflow." > /tmp/artifact/dummy.txt
         fi
+    - name: "SHA256SUMS"
+      run: (cd /tmp/artifact; sha256sum *) | tee /tmp/SHA256SUMS
+    - name: "The sha256sum of the SHA256SUMS file"
+      run: sha256sum /tmp/SHA256SUMS
     - name: "Prepare the release note"
       run: |
         tag="${GITHUB_REF##*/}"
